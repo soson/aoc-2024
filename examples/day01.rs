@@ -23,7 +23,7 @@ fn main() {
     let sum2 = distance2(&list1, &list2);
 
     println!("day 1 - part 1: {}", sum1);
-    println!("day 2 - part 2: {}", sum2);
+    println!("day 1 - part 2: {}", sum2);
 }
 
 fn parse_data(input: &str) -> Result<(Vec<u32>, Vec<u32>), Box<dyn std::error::Error>> {
