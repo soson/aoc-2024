@@ -19,8 +19,11 @@ fn main() {
 
     let data = parse_data(&input);
     let sum1 = multiply(&data);
+    let enabled_data = get_enabled_data(&input);
+    let sum2: u32 = multiply(&parse_data(&enabled_data.concat()));
 
     println!("day 3 - part 1: {}", sum1);
+    println!("day 3 - part 2: {}", sum2);
 }
 
 fn parse_data(input: &str) -> Vec<(u32, u32)> {
@@ -40,9 +43,23 @@ fn multiply(data: &[(u32, u32)]) -> u32 {
     data.iter().map(|(first, second)| first * second).sum()
 }
 
+fn get_enabled_data(input: &str) -> Vec<&str> {
+    let chunks = input
+        .split("do()")
+        .map(|ch| {
+            let split = ch.split_once("don't()");
+            if let Some((first, _)) = split {
+                return first;
+            }
+            ch
+        })
+        .collect();
+    chunks
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::{multiply, parse_data};
+    use crate::{get_enabled_data, multiply, parse_data};
 
     #[test]
     fn test_parse_data() {
@@ -58,5 +75,12 @@ mod tests {
 
         let pairs = parse_data(&input);
         assert_eq!(multiply(&pairs), 161);
+    }
+    #[test]
+    fn test_day3_part2() {
+        let input = "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))";
+        let enabled_data = get_enabled_data(&input);
+        let pairs = parse_data(&enabled_data.concat());
+        assert_eq!(multiply(&pairs), 48);
     }
 }
