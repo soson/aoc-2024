@@ -23,6 +23,9 @@ fn main() {
 
     let solution = solve(&input);
     println!("day 8 - part 1: {}", solution.len());
+
+    let solution2 = solve2(&input);
+    println!("day 8 - part 2: {}", solution2.len());
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -49,6 +52,15 @@ impl Point {
             y: self.y + y_diff,
         }
     }
+
+    fn minus2(&self, other: &Point) -> Point {
+        let x_diff = self.x - other.x;
+        let y_diff = self.y - other.y;
+        Point {
+            x: x_diff,
+            y: y_diff,
+        }
+    }
 }
 
 fn solve(input: &str) -> HashSet<Point> {
@@ -64,6 +76,46 @@ fn solve(input: &str) -> HashSet<Point> {
                 let diffs = others
                     .iter()
                     .map(|other| n.minus(other))
+                    .collect::<Vec<_>>();
+                diffs
+            })
+        })
+        .filter(|p| p.is_on_grid(board))
+        .for_each(|p| {
+            antinodes.insert(p);
+        });
+
+    antinodes
+}
+
+fn solve2(input: &str) -> HashSet<Point> {
+    let mut antinodes = HashSet::new();
+    let data = parse_data(&input);
+    let board = get_board(&input);
+
+    data.iter()
+        .flat_map(|(_, nodes)| {
+            nodes.iter().enumerate().flat_map(|(i, n)| {
+                let mut others = nodes.to_owned();
+                others.remove(i);
+                let diffs = others
+                    .iter()
+                    .flat_map(|other| {
+                        // trackng all nodes in vec
+                        let mut a = vec![];
+                        // count diff
+                        let diff = n.minus2(other);
+
+                        let mut last = n.to_owned();
+                        loop {
+                            if !last.is_on_grid(board) {
+                                break;
+                            }
+                            a.push(last);
+                            last = last.minus2(&diff);
+                        }
+                        a
+                    })
                     .collect::<Vec<_>>();
                 diffs
             })
@@ -109,7 +161,8 @@ fn get_board(input: &str) -> (u32, u32) {
 
 #[cfg(test)]
 mod tests {
-    use crate::{parse_data, solve, Point};
+
+    use crate::{parse_data, solve, solve2, Point};
 
     #[test]
     fn test_solution() {
@@ -124,7 +177,7 @@ mod tests {
 ........A...
 .........A..
 ............
-............";
+............";
 
         let data = parse_data(&input);
         assert_eq!(data.len(), 2);
@@ -133,5 +186,26 @@ mod tests {
         let solution = solve(&input);
         assert_eq!(solution.len(), 14);
         assert_eq!(solution.contains(&Point::new(10, 10)), true);
+    }
+
+    #[test]
+    fn test_solution2() {
+        let input = r"T.........
+...T......
+.T........
+..........
+..........
+..........
+..........
+..........
+..........
+..........";
+
+        let data = parse_data(&input);
+        assert_eq!(data.len(), 1);
+        assert_eq!(data.get(&'T').is_some_and(|d| { d.len() == 3 }), true);
+
+        let solution = solve2(&input);
+        assert_eq!(solution.len(), 9);
     }
 }
